@@ -1,0 +1,1 @@
+"""AiMedico FastAPI Application Package."""

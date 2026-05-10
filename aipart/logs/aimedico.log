@@ -1,0 +1,246 @@
+2026-05-10 23:27:20 | INFO | app.core.logging:setup_logging:84 | 🚀 AiMedico 1.0.0 logging initialised [development]
+2026-05-10 23:27:20 | INFO | app.main:lifespan:33 | 🏥 Starting AiMedico v1.0.0 [development]
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | BEGIN (implicit)
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("users")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA temp.table_info("users")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("prescriptions")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA temp.table_info("prescriptions")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("ai_results")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA temp.table_info("ai_results")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("medicines")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | PRAGMA temp.table_info("medicines")
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | 
+CREATE TABLE users (
+	id VARCHAR(36) NOT NULL, 
+	email VARCHAR(255) NOT NULL, 
+	full_name VARCHAR(150) NOT NULL, 
+	hashed_password VARCHAR(255) NOT NULL, 
+	is_active BOOLEAN NOT NULL, 
+	is_verified BOOLEAN NOT NULL, 
+	role VARCHAR(20) NOT NULL, 
+	preferred_language VARCHAR(5) NOT NULL, 
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	PRIMARY KEY (id)
+)
+
+
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [no key 0.00154s] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | CREATE UNIQUE INDEX ix_users_email ON users (email)
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [no key 0.00101s] ()
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_users_id ON users (id)
+2026-05-10 23:27:20 | INFO | sqlalchemy.log:info:159 | [no key 0.00098s] ()
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_users_email_active ON users (email, is_active)
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | [no key 0.00104s] ()
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | 
+CREATE TABLE prescriptions (
+	id VARCHAR(36) NOT NULL, 
+	user_id VARCHAR(36) NOT NULL, 
+	original_filename VARCHAR(255) NOT NULL, 
+	stored_filename VARCHAR(255) NOT NULL, 
+	file_path VARCHAR(512) NOT NULL, 
+	file_type VARCHAR(20) NOT NULL, 
+	file_size_bytes INTEGER NOT NULL, 
+	mime_type VARCHAR(100), 
+	raw_ocr_text TEXT, 
+	cleaned_text TEXT, 
+	ocr_confidence VARCHAR(10), 
+	ocr_engine_used VARCHAR(20), 
+	status VARCHAR(30) NOT NULL, 
+	error_message TEXT, 
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+)
+
+
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | [no key 0.00198s] ()
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_prescriptions_id ON prescriptions (id)
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | [no key 0.00101s] ()
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_prescriptions_status ON prescriptions (status)
+2026-05-10 23:27:21 | INFO | sqlalchemy.log:info:159 | [no key 0.00097s] ()
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_prescriptions_user_status ON prescriptions (user_id, status)
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | [no key 0.00113s] ()
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_prescriptions_user_id ON prescriptions (user_id)
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | [no key 0.00093s] ()
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | 
+CREATE TABLE ai_results (
+	id VARCHAR(36) NOT NULL, 
+	prescription_id VARCHAR(36) NOT NULL, 
+	status VARCHAR(20) NOT NULL, 
+	ai_model_used VARCHAR(50), 
+	prompt_tokens INTEGER NOT NULL, 
+	completion_tokens INTEGER NOT NULL, 
+	total_tokens INTEGER NOT NULL, 
+	processing_time_ms INTEGER NOT NULL, 
+	medicines_json JSON, 
+	dosage_json JSON, 
+	warnings_json JSON, 
+	tests_json JSON, 
+	conditions_json JSON, 
+	followup_json JSON, 
+	summary_en TEXT, 
+	summary_bn TEXT, 
+	emergency_level VARCHAR(20) NOT NULL, 
+	emergency_keywords_found JSON, 
+	raw_response TEXT, 
+	error_message TEXT, 
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(prescription_id) REFERENCES prescriptions (id) ON DELETE CASCADE
+)
+
+
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | [no key 0.00272s] ()
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | CREATE UNIQUE INDEX ix_ai_results_prescription_id ON ai_results (prescription_id)
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | [no key 0.00113s] ()
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_ai_results_status ON ai_results (status)
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | [no key 0.00166s] ()
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_ai_results_id ON ai_results (id)
+2026-05-10 23:27:22 | INFO | sqlalchemy.log:info:159 | [no key 0.00076s] ()
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | 
+CREATE TABLE medicines (
+	id VARCHAR(36) NOT NULL, 
+	prescription_id VARCHAR(36) NOT NULL, 
+	name VARCHAR(200) NOT NULL, 
+	generic_name VARCHAR(200), 
+	brand_name VARCHAR(200), 
+	dosage VARCHAR(100), 
+	frequency VARCHAR(100), 
+	duration VARCHAR(100), 
+	route VARCHAR(50), 
+	timing VARCHAR(100), 
+	explanation_en TEXT, 
+	explanation_bn TEXT, 
+	side_effects TEXT, 
+	warnings TEXT, 
+	reminder_times VARCHAR(255), 
+	reminder_enabled BOOLEAN NOT NULL, 
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP) NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(prescription_id) REFERENCES prescriptions (id) ON DELETE CASCADE
+)
+
+
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | [no key 0.00217s] ()
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_medicines_name ON medicines (name)
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | [no key 0.00097s] ()
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_medicines_prescription_id ON medicines (prescription_id)
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | [no key 0.00290s] ()
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_medicines_prescription_name ON medicines (prescription_id, name)
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | [no key 0.00145s] ()
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | CREATE INDEX ix_medicines_id ON medicines (id)
+2026-05-10 23:27:23 | INFO | sqlalchemy.log:info:159 | [no key 0.00102s] ()
+2026-05-10 23:27:24 | INFO | sqlalchemy.log:info:159 | COMMIT
+2026-05-10 23:27:24 | INFO | app.core.database:init_db:96 | ✅ Database tables initialised successfully.
+2026-05-10 23:27:24 | INFO | app.main:lifespan:41 | ✅ Application startup complete.
+2026-05-10 23:27:24 | INFO | uvicorn.lifespan.on:startup:62 | Application startup complete.
+2026-05-10 23:27:24 | ERROR | uvicorn.lifespan.on:send:134 | Traceback (most recent call last):
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\aimedico\aipart\.venv\Lib\site-packages\starlette\routing.py", line 741, in lifespan
+    await receive()
+  File "D:\aimedico\aipart\.venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+2026-05-10 23:27:26 | INFO | app.core.logging:setup_logging:84 | 🚀 AiMedico 1.0.0 logging initialised [development]
+2026-05-10 23:27:26 | INFO | app.main:lifespan:33 | 🏥 Starting AiMedico v1.0.0 [development]
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | BEGIN (implicit)
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("users")
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("prescriptions")
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("ai_results")
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("medicines")
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:26 | INFO | sqlalchemy.log:info:159 | COMMIT
+2026-05-10 23:27:26 | INFO | app.core.database:init_db:96 | ✅ Database tables initialised successfully.
+2026-05-10 23:27:26 | INFO | app.main:lifespan:41 | ✅ Application startup complete.
+2026-05-10 23:27:26 | INFO | uvicorn.lifespan.on:startup:62 | Application startup complete.
+2026-05-10 23:27:54 | INFO | uvicorn.server:shutdown:258 | Shutting down
+2026-05-10 23:27:54 | INFO | uvicorn.lifespan.on:shutdown:67 | Waiting for application shutdown.
+2026-05-10 23:27:54 | INFO | app.core.database:close_db:102 | Database engine disposed.
+2026-05-10 23:27:54 | INFO | app.main:lifespan:47 | 👋 Application shutdown complete.
+2026-05-10 23:27:54 | INFO | uvicorn.lifespan.on:shutdown:76 | Application shutdown complete.
+2026-05-10 23:27:54 | INFO | uvicorn.server:_serve:92 | Finished server process [1776]
+2026-05-10 23:27:57 | INFO | app.core.logging:setup_logging:84 | 🚀 AiMedico 1.0.0 logging initialised [development]
+2026-05-10 23:27:57 | INFO | app.main:lifespan:33 | 🏥 Starting AiMedico v1.0.0 [development]
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | BEGIN (implicit)
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("users")
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("prescriptions")
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("ai_results")
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | PRAGMA main.table_info("medicines")
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | [raw sql] ()
+2026-05-10 23:27:57 | INFO | sqlalchemy.log:info:159 | COMMIT
+2026-05-10 23:27:57 | INFO | app.core.database:init_db:96 | ✅ Database tables initialised successfully.
+2026-05-10 23:27:57 | INFO | app.main:lifespan:41 | ✅ Application startup complete.
+2026-05-10 23:27:57 | INFO | uvicorn.lifespan.on:startup:62 | Application startup complete.
+2026-05-10 23:27:57 | ERROR | uvicorn.lifespan.on:send:134 | Traceback (most recent call last):
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\aimedico\aipart\.venv\Lib\site-packages\starlette\routing.py", line 741, in lifespan
+    await receive()
+  File "D:\aimedico\aipart\.venv\Lib\site-packages\uvicorn\lifespan\on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Ashik\AppData\Local\Programs\Python\Python312\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+

@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Custom Properties ─────────────────────────────────────────────────── */
+:root {
+  --radius: 0.75rem;
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --destructive: 0 84.2% 60.2%;
+  --ring: 207 90% 54%;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+}
+
+.dark {
+  --background: 222 47% 7%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 10%;
+  --card-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --destructive: 0 62.8% 50.6%;
+  --ring: 207 90% 54%;
+
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Base Styles ─────────────────────────────────────────────────────────────── */
+* {
+  @apply border-border;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+  background-image: radial-gradient(ellipse at top, rgba(14, 116, 221, 0.04) 0%, transparent 60%);
+  min-height: 100vh;
+}
+
+/* ── Glassmorphism Components ─────────────────────────────────────────────── */
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-6;
+  }
+
+  /* Medical gradient button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white
+           bg-gradient-to-r from-brand-600 to-brand-500
+           hover:from-brand-700 hover:to-brand-600
+           active:scale-[0.98] transition-all duration-200 shadow-lg shadow-brand-500/25
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold
+           border border-border bg-card hover:bg-accent
+           active:scale-[0.98] transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-red-600
+           border border-red-200 bg-red-50 hover:bg-red-100
+           dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40
+           active:scale-[0.98] transition-all duration-200;
+  }
+
+  /* Form input */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-border bg-card text-foreground
+           placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500
+           transition-all duration-200 text-sm;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-foreground mb-1.5;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-card rounded-2xl border border-border shadow-sm;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply bg-gradient-to-r from-muted via-accent to-muted bg-[length:200%_100%] animate-shimmer rounded-lg;
+  }
+
+  /* Medical disclaimer box */
+  .disclaimer-box {
+    @apply flex gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm
+           dark:bg-amber-900/20 dark:border-amber-800/50 dark:text-amber-300;
+  }
+
+  /* Emergency banners */
+  .emergency-critical {
+    @apply flex gap-3 p-4 rounded-xl bg-red-50 border-2 border-red-400 text-red-800
+           dark:bg-red-900/20 dark:border-red-600 dark:text-red-300 animate-pulse;
+  }
+
+  .emergency-high {
+    @apply flex gap-3 p-4 rounded-xl bg-red-50 border border-red-300 text-red-800
+           dark:bg-red-900/20 dark:border-red-700 dark:text-red-300;
+  }
+
+  .emergency-medium {
+    @apply flex gap-3 p-4 rounded-xl bg-orange-50 border border-orange-300 text-orange-800
+           dark:bg-orange-900/20 dark:border-orange-700 dark:text-orange-300;
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply text-lg font-bold text-foreground flex items-center gap-2 mb-4;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent;
+  }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-border rounded-full hover:bg-muted-foreground/30; }
+
+/* ── Selection ───────────────────────────────────────────────────────────────── */
+::selection { @apply bg-brand-500/20 text-brand-900; }
+
+/* ── Typing animation ────────────────────────────────────────────────────────── */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 0.75s step-end infinite;
+  margin-left: 2px;
+  color: hsl(var(--primary));
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Page transitions ────────────────────────────────────────────────────────── */
+.page-enter { animation: slideUp 0.35s ease-out; }
