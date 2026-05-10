@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Heart, Loader2, Mail, Lock, User } from 'lucide-react'
+import { Loader2, Activity } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useState } from 'react'
 
 import { authApi } from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
@@ -16,39 +16,33 @@ import { getErrorMessage } from '@/lib/utils'
 
 const schema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Enter a valid email'),
-  password: z.string()
+  email: z.string().email('Enter a valid email address'),
+  password: z
+    .string()
     .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Must include an uppercase letter')
-    .regex(/[0-9]/, 'Must include a number'),
-  confirm_password: z.string(),
-  preferred_language: z.enum(['en', 'bn']).default('en'),
-}).refine(d => d.password === d.confirm_password, {
-  message: 'Passwords do not match',
-  path: ['confirm_password'],
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
+  preferred_language: z.enum(['en', 'bn']),
 })
-
 type FormData = z.infer<typeof schema>
 
 export default function RegisterPage() {
   const router = useRouter()
   const { setUser, setTokens } = useAuthStore()
-  const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { preferred_language: 'en' },
+    defaultValues: { preferred_language: 'en' }
   })
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
     try {
-      const { confirm_password, ...payload } = data
-      const res = await authApi.register(payload)
+      const res = await authApi.register(data)
       setTokens(res.tokens.access_token, res.tokens.refresh_token)
       setUser(res.user)
-      toast.success('Account created! Welcome to AiMedico 🎉')
+      toast.success('Account created successfully.')
       router.push('/dashboard')
     } catch (err) {
       toast.error(getErrorMessage(err))
@@ -58,97 +52,81 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <div className="absolute inset-0 bg-hero-pattern opacity-30 dark:opacity-10 pointer-events-none" />
-      <div className="absolute top-0 left-1/3 w-96 h-96 bg-brand-500/8 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background text-foreground font-sans">
+      <Link href="/" className="mb-12 flex items-center gap-2">
+        <Activity className="w-5 h-5 text-foreground" />
+        <span className="font-semibold tracking-tight text-sm">AiMedico</span>
+      </Link>
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-[360px]"
       >
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl">AiMedico</span>
-          </Link>
-          <h1 className="text-3xl font-extrabold">Create your account</h1>
-          <p className="text-muted-foreground mt-2">
-            Already have one?{' '}
-            <Link href="/login" className="text-brand-600 hover:underline font-medium">Sign in</Link>
-          </p>
+        <div className="mb-8 text-center">
+          <h1 className="text-xl font-semibold mb-1">Create an account</h1>
+          <p className="text-sm text-muted-foreground">Enter your details to get started</p>
         </div>
 
-        <div className="glass-card">
-          <form id="register-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Full Name */}
-            <div>
-              <label htmlFor="full_name" className="label">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input id="full_name" type="text" placeholder="Rahim Uddin" className={`input pl-10 ${errors.full_name ? 'border-red-400' : ''}`} {...register('full_name')} />
-              </div>
-              {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>}
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Full Name</label>
+            <input
+              type="text"
+              className={`w-full px-3 py-2 rounded-md border bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-all ${errors.full_name ? 'border-red-500' : 'border-border'}`}
+              placeholder="John Doe"
+              {...register('full_name')}
+            />
+          </div>
 
-            {/* Email */}
-            <div>
-              <label htmlFor="reg-email" className="label">Email address</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input id="reg-email" type="email" placeholder="you@example.com" className={`input pl-10 ${errors.email ? 'border-red-400' : ''}`} {...register('email')} />
-              </div>
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Email</label>
+            <input
+              type="email"
+              className={`w-full px-3 py-2 rounded-md border bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-all ${errors.email ? 'border-red-500' : 'border-border'}`}
+              placeholder="name@example.com"
+              {...register('email')}
+            />
+          </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="reg-password" className="label">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input id="reg-password" type={showPass ? 'text' : 'password'} placeholder="Min 8 chars, 1 uppercase, 1 number" className={`input pl-10 pr-10 ${errors.password ? 'border-red-400' : ''}`} {...register('password')} />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Password</label>
+            <input
+              type="password"
+              className={`w-full px-3 py-2 rounded-md border bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-all ${errors.password ? 'border-red-500' : 'border-border'}`}
+              placeholder="••••••••"
+              {...register('password')}
+            />
+            {errors.password
+              ? <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              : <p className="text-muted-foreground text-xs mt-1">Min. 8 chars, one uppercase letter, one number.</p>
+            }
+          </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirm_password" className="label">Confirm Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input id="confirm_password" type="password" placeholder="••••••••" className={`input pl-10 ${errors.confirm_password ? 'border-red-400' : ''}`} {...register('confirm_password')} />
-              </div>
-              {errors.confirm_password && <p className="text-red-500 text-xs mt-1">{errors.confirm_password.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Language</label>
+            <select
+              className="w-full px-3 py-2 rounded-md border border-border bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-foreground transition-all"
+              {...register('preferred_language')}
+            >
+              <option value="en">English</option>
+              <option value="bn">Bangla</option>
+            </select>
+          </div>
 
-            {/* Language */}
-            <div>
-              <label className="label">Preferred Language</label>
-              <div className="grid grid-cols-2 gap-3">
-                {[{ value:'en', label:'🇬🇧 English' }, { value:'bn', label:'🇧🇩 বাংলা' }].map(l => (
-                  <label key={l.value} className="flex items-center gap-2 p-3 rounded-xl border border-border cursor-pointer hover:border-brand-400 transition-colors has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:has-[:checked]:bg-brand-950/30 text-sm font-medium">
-                    <input type="radio" value={l.value} {...register('preferred_language')} className="accent-brand-600" />
-                    {l.label}
-                  </label>
-                ))}
-              </div>
-            </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-foreground text-background py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center h-9 mt-6"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign Up'}
+          </button>
+        </form>
 
-            <button id="register-submit" type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base mt-2">
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</> : 'Create Account'}
-            </button>
-          </form>
-
-          <p className="text-xs text-muted-foreground text-center mt-5 leading-relaxed">
-            By registering, you acknowledge that AiMedico is for <strong>educational purposes only</strong> and is not a substitute for professional medical advice.
-          </p>
-        </div>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Already have an account?{' '}
+          <Link href="/login" className="text-foreground hover:underline">Sign in</Link>
+        </p>
       </motion.div>
     </div>
   )

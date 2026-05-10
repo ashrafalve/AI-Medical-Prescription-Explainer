@@ -29,8 +29,8 @@ class MedicineItem(BaseModel):
 
 class DosageItem(BaseModel):
     medicine: str
-    dose: str
-    frequency: str
+    dose: Optional[str] = None
+    frequency: Optional[str] = None
     timing: Optional[str] = None
     notes: Optional[str] = None
 

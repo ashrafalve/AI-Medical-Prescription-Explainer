@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.docs import get_swagger_ui_html
 from sqlalchemy.exc import SQLAlchemyError
 from openai import APIError as OpenAIAPIError
 from pathlib import Path
@@ -56,7 +57,7 @@ app = FastAPI(
         "Upload prescriptions and medical reports to get patient-friendly explanations."
     ),
     version=settings.APP_VERSION,
-    docs_url="/docs" if settings.DEBUG else None,
+    docs_url=None,  # Disabled default docs to use custom unblocked CDN
     redoc_url="/redoc" if settings.DEBUG else None,
     openapi_url="/openapi.json" if settings.DEBUG else None,
     lifespan=lifespan,
@@ -120,3 +121,15 @@ async def root():
         "version": settings.APP_VERSION,
         "docs": "/docs",
     }
+
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    """Custom Swagger UI that uses an unblocked CDN."""
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js",
+        swagger_css_url="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css",
+    )

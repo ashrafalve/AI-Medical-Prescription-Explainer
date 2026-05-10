@@ -37,3 +37,7 @@ htmlcov/
 
 # AI / OCR Temp Files
 tesseract_logs/
+
+# Logs
+logs/
+*.log
