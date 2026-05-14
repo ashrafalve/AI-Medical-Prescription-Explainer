@@ -1,5 +1,7 @@
 # AiMedico
 
+![AiMedico](./demo.png)
+
 **AiMedico** is an intelligent medical document analysis platform designed to help patients understand their prescriptions and lab reports. By combining multi-engine OCR with advanced AI processing, AiMedico translates complex medical jargon into clear, actionable, bilingual (English & Bangla) insights.
 
 > **Disclaimer:** AiMedico is an educational tool. It is not a medical device and should not replace professional medical advice or diagnosis.
